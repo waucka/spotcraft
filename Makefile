@@ -1,5 +1,5 @@
 SUBDIRS := minemanagerd mounter find-nvme-device
-PACKER := packer-io
+PACKER := packer
 
 all: $(SUBDIRS)
 
@@ -12,7 +12,8 @@ vars.json:
 	echo "{}" > vars.json
 
 ami: $(SUBDIRS) packer.json vars.json
-	$(PACKER) -var-file=vars.json packer.json
+	$(PACKER) validate packer.json
+	$(PACKER) build -var-file=vars.json packer.json
 
 clean:
 	bash ./clean.sh $(SUBDIRS)
