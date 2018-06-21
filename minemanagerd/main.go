@@ -5,7 +5,9 @@ import (
 	"io"
 	"fmt"
 	"time"
+	"sync"
 	"bufio"
+	"errors"
 	"sync/atomic"
 	"os/exec"
 	"syscall"
@@ -24,13 +26,14 @@ import (
 
 const (
 	UserDataURL = "http://169.254.169.254/latest/user-data"
-	TerminationTimeURL = "http://169.254.169.254/latest/meta-data/spot/termination-time"
+	InstanceActionURL = "http://169.254.169.254/latest/meta-data/spot/instance-action"
 	InstanceMetadataURLPattern = "http://169.254.169.254/latest/meta-data/%s"
 	StartScriptPath = "/minecraft/ServerStart.sh"
 )
 
 var (
 	logger *logrus.Logger
+	ErrSpotTermination = errors.New("Spot instance terminating")
 )
 
 type MinecraftParams struct {
@@ -92,21 +95,65 @@ func getInstanceMetadata(name string) (string, error)  {
 	return string(payload), nil
 }
 
+type InstanceAction struct {
+	Action string `json:"action"`
+	Time string `json:"time"`
+}
+
+func getTerminationTime() (*time.Time, error)  {
+	resp, err := http.Get(InstanceActionURL)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == 404 {
+		return nil, nil
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Failed to retrieve instance action.  Status code: %d", resp.StatusCode)
+	}
+
+	payload, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var action InstanceAction
+	err = json.Unmarshal(payload, &action)
+	if err != nil {
+		return nil, err
+	}
+
+	t, err := time.Parse(time.RFC3339, action.Time)
+	if err != nil {
+		return nil, err
+	}
+
+	return &t, nil
+}
+
 func attachEIP(ec2Client *ec2.EC2, params *MinecraftParams) error {
 	instanceId, err := getInstanceMetadata("instance-id")
 	if err != nil {
 		return err
 	}
 
+	// This should succeed even if the address is already present.
 	_, err = ec2Client.AssociateAddress(&ec2.AssociateAddressInput{
 		AllocationId: aws.String(params.ElasticIP),
-		AllowReassociation: aws.Bool(false),
 		InstanceId: aws.String(instanceId),
 	})
 	return err
 }
 
 func attachEBS(ec2Client *ec2.EC2, params *MinecraftParams) error {
+	cmd := exec.Command("find-nvme-device", params.EBSVolume)
+	err := cmd.Run()
+	if err == nil {
+		logger.Infof("EBS volume %s seems to be attached already.", params.EBSVolume)
+	}
+
 	instanceId, err := getInstanceMetadata("instance-id")
 	if err != nil {
 		return err
@@ -120,11 +167,36 @@ func attachEBS(ec2Client *ec2.EC2, params *MinecraftParams) error {
 	return err
 }
 
+func mountEBS(params *MinecraftParams) error {
+	// Wait for the volume to attach
+	time.Sleep(10 * time.Second)
+
+	cmd := exec.Command("find-nvme-device", params.EBSVolume)
+	output, err := cmd.Output()
+	if err != nil {
+		return fmt.Errorf("Failed to find NVMe device: %v", err)
+	}
+	dev := string(output)
+	if dev[len(dev)-1] == '\n' {
+		dev = dev[:len(dev)-1]
+	}
+
+	cmd = exec.Command("mounter", dev)
+	err = cmd.Run()
+	if err != nil {
+		return fmt.Errorf("Failed to mount EBS volume: %v", err)
+	}
+
+	return nil
+}
+
 type Minecraft struct {
 	params *MinecraftParams
 	cmd *exec.Cmd
+	stdinmut sync.Mutex
 	stdin io.WriteCloser
 	stdout io.ReadCloser
+	quiesce uint64
 }
 
 func NewMinecraft(params *MinecraftParams) *Minecraft {
@@ -132,13 +204,21 @@ func NewMinecraft(params *MinecraftParams) *Minecraft {
 		params: params,
 		stdin: nil,
 		stdout: nil,
+		quiesce: 0,
 	}
 }
 
-func (self *Minecraft) Stop() {
-	self.stdin.Write([]byte("say The server will shut down in 60 seconds.  Get to safety now!\n"))
-	time.Sleep(60 * time.Second)
-	self.stdin.Write([]byte("stop\n"))
+func (self *Minecraft) Stop(quiesce bool) {
+	self.stdinmut.Lock()
+	defer self.stdinmut.Unlock()
+	if quiesce {
+		atomic.StoreUint64(&self.quiesce, 1)
+	}
+	if self.stdin != nil {
+		self.stdin.Write([]byte("say The server will shut down in 60 seconds.  Get to safety now!\n"))
+		time.Sleep(60 * time.Second)
+		self.stdin.Write([]byte("stop\n"))
+	}
 }
 
 func (self *Minecraft) Run() error {
@@ -156,6 +236,8 @@ func (self *Minecraft) Run() error {
 	}
 
 	defer func() {
+		self.stdinmut.Lock()
+		defer self.stdinmut.Unlock()
 		self.stdin.Close()
 		self.stdout.Close()
 		self.stdin = nil
@@ -170,7 +252,15 @@ func (self *Minecraft) Run() error {
 		}
 	}()
 
-	return cmd.Run()
+	if atomic.LoadUint64(&self.quiesce) == 0 {
+		err = cmd.Run()
+	}
+
+	if atomic.LoadUint64(&self.quiesce) == 1 {
+		return ErrSpotTermination
+	} else {
+		return err
+	}
 }
 
 func main() {
@@ -229,33 +319,57 @@ func main() {
 		logger.Fatalf("Failed to attach EBS volume: %v", err)
 	}
 
+	err = mountEBS(params)
+	if err != nil {
+		logger.Fatalf("Failed to attach EBS volume: %v", err)
+	}
+
 	success := false
 	var keepRunning uint64 = 1
-	for atomic.LoadUint64(&keepRunning) == 1 {
-		mc := NewMinecraft(params)
-		if err != nil {
-			logger.Fatalf("Failed to create Minecraft manager: %v", err)
+	mc := NewMinecraft(params)
+
+	sigc := make(chan os.Signal, 2)
+	signal.Notify(sigc, syscall.SIGQUIT, syscall.SIGHUP)
+	defer func() {
+		signal.Stop(sigc)
+		close(sigc)
+	}()
+
+	go func() {
+		sig := <-sigc
+		switch sig {
+		case syscall.SIGQUIT:
+			atomic.StoreUint64(&keepRunning, 0)
+			mc.Stop(false)
+		case syscall.SIGHUP:
+			mc.Stop(false)
 		}
+	}()
 
-		sigc := make(chan os.Signal, 2)
-		signal.Notify(sigc, syscall.SIGQUIT, syscall.SIGHUP)
-		defer func() {
-			signal.Stop(sigc)
-			close(sigc)
-		}()
-
-		go func() {
-			sig := <-sigc
-			switch sig {
-			case syscall.SIGQUIT:
-				atomic.StoreUint64(&keepRunning, 0)
-				mc.Stop()
-			case syscall.SIGHUP:
-				mc.Stop()
+	go func() {
+		t, err := getTerminationTime()
+		if err != nil {
+			logger.Errorf("Failed to get termination time: %v", err)
+		}
+		if t != nil {
+			now := time.Now()
+			if now.Sub(*t) < 3 * time.Minute {
+				mc.Stop(true)
 			}
-		}()
+		}
+		time.Sleep(5 * time.Second)
+	}()
 
+	for atomic.LoadUint64(&keepRunning) == 1 {
 		err = mc.Run()
+		if err == ErrSpotTermination {
+			for {
+				time.Sleep(5 * time.Second)
+				if atomic.LoadUint64(&keepRunning) == 0 {
+					break
+				}
+			}
+		}
 		success = err == nil
 	}
 
