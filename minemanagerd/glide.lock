@@ -1,0 +1,57 @@
+hash: 2ecf09ad34242f9e8110267eae1e71c871257b916417771aa7be049b4b8765a3
+updated: 2018-06-21T11:11:46.514343435-05:00
+imports:
+- name: github.com/aws/aws-sdk-go
+  version: e4805606f5138247510183050abe642344275ebd
+  subpackages:
+  - aws
+  - aws/awserr
+  - aws/awsutil
+  - aws/client
+  - aws/client/metadata
+  - aws/corehandlers
+  - aws/credentials
+  - aws/credentials/ec2rolecreds
+  - aws/credentials/endpointcreds
+  - aws/credentials/stscreds
+  - aws/csm
+  - aws/defaults
+  - aws/ec2metadata
+  - aws/endpoints
+  - aws/request
+  - aws/session
+  - aws/signer/v4
+  - internal/sdkio
+  - internal/sdkrand
+  - internal/shareddefaults
+  - private/protocol
+  - private/protocol/ec2query
+  - private/protocol/json/jsonutil
+  - private/protocol/jsonrpc
+  - private/protocol/query
+  - private/protocol/query/queryutil
+  - private/protocol/rest
+  - private/protocol/xml/xmlutil
+  - service/cloudwatchlogs
+  - service/ec2
+  - service/sts
+- name: github.com/go-ini/ini
+  version: cec2bdc49009247305a260b082a18e802d0fe292
+- name: github.com/jmespath/go-jmespath
+  version: c2b33e8439af944379acbdd9c3a5fe0bc44bd8a5
+- name: github.com/kardianos/osext
+  version: ae77be60afb1dcacde03767a8c37337fad28ac14
+- name: github.com/kdar/logrus-cloudwatchlogs
+  version: c4ba9db972a45b7d5e01e17fd1a698636e5b4508
+- name: github.com/sirupsen/logrus
+  version: c155da19408a8799da419ed3eeb0cb5db0ad5dbc
+- name: golang.org/x/crypto
+  version: a49355c7e3f8fe157a85be2f77e6e269a0f89602
+  subpackages:
+  - ssh/terminal
+- name: golang.org/x/sys
+  version: ad87a3a340fa7f3bed189293fbfa7a9b7e021ae1
+  subpackages:
+  - unix
+  - windows
+testImports: []

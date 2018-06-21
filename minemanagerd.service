@@ -1,0 +1,17 @@
+[Unit]
+Description=Minecraft Manager
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/minemanagerd
+ExecReload=/bin/kill --signal HUP $MAINPID
+KillSignal=SIGQUIT
+KillMode=mixed
+Restart=always
+User=ubuntu
+Group=ubuntu
+TimeoutStopSec=120
+
+[Install]
+WantedBy=multi-user.target

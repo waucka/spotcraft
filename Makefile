@@ -1,0 +1,20 @@
+SUBDIRS := minemanagerd mounter find-nvme-device
+PACKER := packer-io
+
+all: $(SUBDIRS)
+
+$(SUBDIRS):
+	$(MAKE) -C $@
+
+# If you want to use the defaults, you don't need to create
+# vars.json yourself; make will do it for you.
+vars.json:
+	echo "{}" > vars.json
+
+ami: $(SUBDIRS) packer.json vars.json
+	$(PACKER) -var-file=vars.json packer.json
+
+clean:
+	bash ./clean.sh $(SUBDIRS)
+
+.PHONY: all clean ami $(SUBDIRS)
