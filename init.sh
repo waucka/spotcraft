@@ -3,9 +3,9 @@
 set -e
 
 sudo apt update
-sudo apt full-upgrade
+sudo apt full-upgrade -y
 
-sudo apt install openjdk-${java_version}-jre-headless nvme-cli
+sudo apt install -y openjdk-${java_version}-jre-headless nvme-cli
 
 sudo mv /tmp/minemanagerd /usr/bin/minemanagerd
 sudo chown root:root /usr/bin/minemanagerd
