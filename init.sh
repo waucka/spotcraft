@@ -11,6 +11,11 @@ sudo mv /tmp/minemanagerd /usr/bin/minemanagerd
 sudo chown root:root /usr/bin/minemanagerd
 sudo chmod 755 /usr/bin/minemanagerd
 
+sudo mv /tmp/minemanagerd.service /lib/systemd/system/minemanagerd.service
+sudo chown root:root /lib/systemd/system/minemanagerd.service
+sudo chmod 644 /lib/systemd/system/minemanagerd.service
+sudo systemctl enable minemanagerd.service
+
 sudo mv /tmp/mounter /usr/bin/mounter
 sudo chown root:root /usr/bin/mounter
 sudo chmod 4755 /usr/bin/mounter
