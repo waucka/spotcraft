@@ -1,4 +1,4 @@
-SUBDIRS := minemanagerd mounter find-nvme-device
+SUBDIRS := minemanagerd mounter unmounter find-nvme-device
 PACKER := packer
 
 all: $(SUBDIRS)

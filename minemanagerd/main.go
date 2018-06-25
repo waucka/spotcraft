@@ -167,10 +167,27 @@ func attachEBS(ec2Client *ec2.EC2, params *MinecraftParams) error {
 	return err
 }
 
-func mountEBS(params *MinecraftParams) error {
-	// Wait for the volume to attach
-	time.Sleep(10 * time.Second)
+func detachEBS(ec2Client *ec2.EC2, params *MinecraftParams) error {
+	cmd := exec.Command("find-nvme-device", params.EBSVolume)
+	err := cmd.Run()
+	if err == nil {
+		logger.Infof("EBS volume %s seems to be attached already.", params.EBSVolume)
+	}
 
+	instanceId, err := getInstanceMetadata("instance-id")
+	if err != nil {
+		return err
+	}
+
+	_, err = ec2Client.DetachVolume(&ec2.DetachVolumeInput{
+		Device: aws.String("/dev/sdf"),
+		VolumeId: aws.String(params.EBSVolume),
+		InstanceId: aws.String(instanceId),
+	})
+	return err
+}
+
+func mountEBS(params *MinecraftParams) error {
 	cmd := exec.Command("find-nvme-device", params.EBSVolume)
 	output, err := cmd.Output()
 	if err != nil {
@@ -185,6 +202,16 @@ func mountEBS(params *MinecraftParams) error {
 	err = cmd.Run()
 	if err != nil {
 		return fmt.Errorf("Failed to mount EBS volume: %v", err)
+	}
+
+	return nil
+}
+
+func unmountEBS(params *MinecraftParams) error {
+	cmd := exec.Command("unmounter")
+	err := cmd.Run()
+	if err != nil {
+		return fmt.Errorf("Failed to unmount EBS volume: %v", err)
 	}
 
 	return nil
@@ -263,6 +290,23 @@ func (self *Minecraft) Run() error {
 	}
 }
 
+func cleanupDiskMounts(ec2Client *ec2.EC2, params *MinecraftParams) error {
+	err := unmountEBS(params)
+	if err != nil {
+		return fmt.Errorf("Failed to unmount EBS volume: %v", err)
+	}
+
+	// Wait for things to settle
+	time.Sleep(10 * time.Second)
+
+	err = detachEBS(ec2Client, params)
+	if err != nil {
+		return fmt.Errorf("Failed to detach EBS volume: %v", err)
+	}
+
+	return nil
+}
+
 func main() {
 	region, err := getInstanceMetadata("placement/availability-zone")
 	if err != nil {
@@ -319,9 +363,12 @@ func main() {
 		logger.Fatalf("Failed to attach EBS volume: %v", err)
 	}
 
+	// Wait for the volume to attach
+	time.Sleep(10 * time.Second)
+
 	err = mountEBS(params)
 	if err != nil {
-		logger.Fatalf("Failed to attach EBS volume: %v", err)
+		logger.Fatalf("Failed to mount EBS volume: %v", err)
 	}
 
 	success := false
@@ -363,6 +410,10 @@ func main() {
 	for atomic.LoadUint64(&keepRunning) == 1 {
 		err = mc.Run()
 		if err == ErrSpotTermination {
+			cleanupErr := cleanupDiskMounts(ec2Client, params)
+			if cleanupErr != nil {
+				logger.Error(cleanupErr.Error())
+			}
 			for {
 				time.Sleep(5 * time.Second)
 				if atomic.LoadUint64(&keepRunning) == 0 {
@@ -373,6 +424,10 @@ func main() {
 		success = err == nil
 	}
 
+	cleanupErr := cleanupDiskMounts(ec2Client, params)
+	if cleanupErr != nil {
+		logger.Error(cleanupErr.Error())
+	}
 	if !success {
 		os.Exit(1)
 	}

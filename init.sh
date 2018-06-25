@@ -20,6 +20,10 @@ sudo mv /tmp/mounter /usr/bin/mounter
 sudo chown root:root /usr/bin/mounter
 sudo chmod 4755 /usr/bin/mounter
 
+sudo mv /tmp/unmounter /usr/bin/unmounter
+sudo chown root:root /usr/bin/unmounter
+sudo chmod 4755 /usr/bin/unmounter
+
 sudo mv /tmp/get-nvme-volname /usr/bin/get-nvme-volname
 sudo chown root:root /usr/bin/get-nvme-volname
 sudo chmod 755 /usr/bin/get-nvme-volname

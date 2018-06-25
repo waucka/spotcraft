@@ -2,6 +2,7 @@
 server
 vars.json
 mounter/mounter
+unmounter/unmounter
 find-nvme-device/find-nvme-device
 minemanagerd/minemanagerd
 minemanagerd/vendor
