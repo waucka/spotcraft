@@ -407,12 +407,18 @@ func main() {
 		time.Sleep(5 * time.Second)
 	}()
 
+	// TODO: can I express this in a cleaner way?
+	needsCleanup := true
+
 	for atomic.LoadUint64(&keepRunning) == 1 {
 		err = mc.Run()
 		if err == ErrSpotTermination {
+			success = true
 			cleanupErr := cleanupDiskMounts(ec2Client, params)
 			if cleanupErr != nil {
 				logger.Error(cleanupErr.Error())
+			} else {
+				needsCleanup = false
 			}
 			for {
 				time.Sleep(5 * time.Second)
@@ -420,13 +426,16 @@ func main() {
 					break
 				}
 			}
+		} else {
+			success = err == nil
 		}
-		success = err == nil
 	}
 
-	cleanupErr := cleanupDiskMounts(ec2Client, params)
-	if cleanupErr != nil {
-		logger.Error(cleanupErr.Error())
+	if needsCleanup {
+		cleanupErr := cleanupDiskMounts(ec2Client, params)
+		if cleanupErr != nil {
+			logger.Error(cleanupErr.Error())
+		}
 	}
 	if !success {
 		os.Exit(1)
