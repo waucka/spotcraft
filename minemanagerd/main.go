@@ -394,17 +394,22 @@ func main() {
 	}()
 
 	go func() {
-		t, err := getTerminationTime()
-		if err != nil {
-			logger.Errorf("Failed to get termination time: %v", err)
-		}
-		if t != nil {
-			now := time.Now()
-			if now.Sub(*t) < 3 * time.Minute {
-				mc.Stop(true)
+		for {
+			t, err := getTerminationTime()
+			if err != nil {
+				logger.Errorf("Failed to get termination time: %v", err)
 			}
+			if t != nil {
+				now := time.Now()
+				if now.Sub(*t) < 3 * time.Minute {
+					mc.Stop(true)
+					// After we've sent the stop command, we
+					// don't need this goroutine anymore.
+					break
+				}
+			}
+			time.Sleep(5 * time.Second)
 		}
-		time.Sleep(5 * time.Second)
 	}()
 
 	// TODO: can I express this in a cleaner way?
