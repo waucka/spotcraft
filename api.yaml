@@ -24,7 +24,7 @@ definitions:
     properties:
       server_name:
         type: string
-  NewInstanceResponse:
+  GeneralResponse:
     type: object
     properties:
       message:
@@ -32,17 +32,32 @@ definitions:
   Server:
     type: object
     properties:
-      name:
-        type: string
       minecraft_type:
         type: string
       ec2_type:
         type: string
       ami_id:
         type: string
+      world_volume_id:
+        type: string
+  NewServer:
+    type: object
+    properties:
+      minecraft_type:
+        type: string
+      ec2_type:
+        type: string
+      ami_id:
+        type: string
+      world_volume_id:
+        type: string
+  ModifyServer:
+    type: object
+    additionalProperties:
+        type: string
   ServerList:
-    type: array
-    items:
+    type: object
+    additionalProperties:
       $ref: '#/definitions/Server'
 
 paths:
@@ -119,7 +134,7 @@ paths:
               description: URI that may access the resource
               type: string
           schema:
-            $ref: '#/definitions/NewInstanceResponse'
+            $ref: '#/definitions/GeneralResponse'
         '400':
           description: Bad request
           headers:
@@ -127,7 +142,7 @@ paths:
               description: URI that may access the resource
               type: string
           schema:
-            $ref: '#/definitions/NewInstanceResponse'
+            $ref: '#/definitions/GeneralResponse'
         '500':
           description: Internal error
           headers:
@@ -135,7 +150,7 @@ paths:
               description: URI that may access the resource
               type: string
           schema:
-            $ref: '#/definitions/NewInstanceResponse'
+            $ref: '#/definitions/GeneralResponse'
       summary: Create a Minecraft server instance
       x-amazon-apigateway-integration:
         httpMethod: POST
@@ -215,6 +230,241 @@ paths:
         name: Terminate-Instance
         required: false
         type: boolean
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: Successful operation
+          headers:
+            Access-Control-Allow-Headers:
+              description: Used in response to a preflight request to indicate which
+                HTTP headers can be used when making the request.
+              type: string
+            Access-Control-Allow-Methods:
+              description: Method or methods allowed when accessing the resource
+              type: string
+            Access-Control-Allow-Origin:
+              description: URI that may access the resource
+              type: string
+          schema:
+            $ref: '#/definitions/Empty'
+      x-amazon-apigateway-integration:
+        passthroughBehavior: NEVER
+        responses:
+          default:
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key'''
+              method.response.header.Access-Control-Allow-Methods: '''GET,OPTIONS'''
+              method.response.header.Access-Control-Allow-Origin: '''*'''
+            statusCode: '200'
+        type: mock
+  /servers:
+    get:
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: Successful operation
+          headers:
+            Access-Control-Allow-Origin:
+              description: URI that may access the resource
+              type: string
+          schema:
+            $ref: '#/definitions/ServerList'
+      summary: List all Minecraft server servers
+      x-amazon-apigateway-integration:
+        httpMethod: GET
+        passthroughBehavior: NEVER
+        responses:
+          default:
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: '''*'''
+            statusCode: '200'
+        type: AWS_PROXY
+        uri: 'arn:aws:apigateway:{{.Region}}:lambda:path/{{.Paths.ListServers}}'
+    options:
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: Successful operation
+          headers:
+            Access-Control-Allow-Headers:
+              description: Used in response to a preflight request to indicate which
+                HTTP headers can be used when making the request.
+              type: string
+            Access-Control-Allow-Methods:
+              description: Method or methods allowed when accessing the resource
+              type: string
+            Access-Control-Allow-Origin:
+              description: URI that may access the resource
+              type: string
+          schema:
+            $ref: '#/definitions/Empty'
+      x-amazon-apigateway-integration:
+        passthroughBehavior: NEVER
+        responses:
+          default:
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key'''
+              method.response.header.Access-Control-Allow-Methods: '''POST,GET,OPTIONS'''
+              method.response.header.Access-Control-Allow-Origin: '''*'''
+            statusCode: '200'
+        type: mock
+  /servers/{serverName}:
+    put:
+      consumes:
+      - application/json
+      operationId: CreateServer
+      parameters:
+      - in: body
+        name: NewServer
+        required: true
+        schema:
+          $ref: '#/definitions/NewServer'
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: Successful operation
+          headers:
+            Access-Control-Allow-Origin:
+              description: URI that may access the resource
+              type: string
+          schema:
+            $ref: '#/definitions/GeneralResponse'
+        '400':
+          description: Bad request
+          headers:
+            Access-Control-Allow-Origin:
+              description: URI that may access the resource
+              type: string
+          schema:
+            $ref: '#/definitions/GeneralResponse'
+        '500':
+          description: Internal error
+          headers:
+            Access-Control-Allow-Origin:
+              description: URI that may access the resource
+              type: string
+          schema:
+            $ref: '#/definitions/GeneralResponse'
+      summary: Create a Minecraft server
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        passthroughBehavior: NEVER
+        responses:
+          default:
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: '''*'''
+            statusCode: '200'
+        type: AWS_PROXY
+        uri: 'arn:aws:apigateway:{{.Region}}:lambda:path/{{.Paths.CreateServer}}'
+    patch:
+      consumes:
+      - application/json
+      operationId: ModifyServer
+      parameters:
+      - in: body
+        name: ModifyServer
+        required: true
+        schema:
+          $ref: '#/definitions/ModifyServer'
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: Successful operation
+          headers:
+            Access-Control-Allow-Origin:
+              description: URI that may access the resource
+              type: string
+          schema:
+            $ref: '#/definitions/GeneralResponse'
+        '400':
+          description: Bad request
+          headers:
+            Access-Control-Allow-Origin:
+              description: URI that may access the resource
+              type: string
+          schema:
+            $ref: '#/definitions/GeneralResponse'
+        '500':
+          description: Internal error
+          headers:
+            Access-Control-Allow-Origin:
+              description: URI that may access the resource
+              type: string
+          schema:
+            $ref: '#/definitions/GeneralResponse'
+      summary: Modify an existing Minecraft server
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        passthroughBehavior: NEVER
+        responses:
+          default:
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: '''*'''
+            statusCode: '200'
+        type: AWS_PROXY
+        uri: 'arn:aws:apigateway:{{.Region}}:lambda:path/{{.Paths.ModifyServer}}'
+    delete:
+      operationId: DeleteServer
+      parameters:
+      - description: The name of the server to delete
+        in: path
+        name: serverName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: Successful operation
+          headers:
+            Access-Control-Allow-Origin:
+              description: URI that may access the resource
+              type: string
+          schema:
+            $ref: '#/definitions/Empty'
+        '400':
+          description: Bad request
+          headers:
+            Access-Control-Allow-Origin:
+              description: URI that may access the resource
+              type: string
+          schema:
+            $ref: '#/definitions/Empty'
+        '500':
+          description: Internal error
+          headers:
+            Access-Control-Allow-Origin:
+              description: URI that may access the resource
+              type: string
+          schema:
+            $ref: '#/definitions/Empty'
+      summary: Delete a server
+      x-amazon-apigateway-integration:
+        httpMethod: GET
+        passthroughBehavior: NEVER
+        requestParameters:
+          integration.request.path.petId: method.request.path.petId
+        responses:
+          default:
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: '''*'''
+            statusCode: '200'
+        type: AWS_PROXY
+        uri: 'arn:aws:apigateway:{{.Region}}:lambda:path/{{.Paths.DeleteServer}}'
+    options:
+      consumes:
+      - application/json
+      parameters:
+      - description: The name of the server to manipulate
+        in: path
+        name: serverName
+        required: true
+        type: string
       produces:
       - application/json
       responses:
