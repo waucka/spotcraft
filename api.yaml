@@ -1,0 +1,245 @@
+---
+swagger: "2.0"
+schemes:
+- https
+info:
+  description: API for managing Minecraft servers running on spot instances
+  title: SpotCraft
+  version: "1"
+
+definitions:
+  Empty:
+    type: object
+  Instance:
+    type: object
+    properties:
+      instance_id:
+        type: string
+  InstanceList:
+    type: array
+    items:
+      $ref: '#/definitions/Instance'
+  NewInstance:
+    type: object
+    properties:
+      server_name:
+        type: string
+  NewInstanceResponse:
+    type: object
+    properties:
+      message:
+        type: string
+  Server:
+    type: object
+    properties:
+      name:
+        type: string
+      minecraft_type:
+        type: string
+      ec2_type:
+        type: string
+      ami_id:
+        type: string
+  ServerList:
+    type: array
+    items:
+      $ref: '#/definitions/Server'
+
+paths:
+  /instances:
+    get:
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: Successful operation
+          headers:
+            Access-Control-Allow-Origin:
+              description: URI that may access the resource
+              type: string
+          schema:
+            $ref: '#/definitions/InstanceList'
+      summary: List all Minecraft server instances
+      x-amazon-apigateway-integration:
+        httpMethod: GET
+        passthroughBehavior: NEVER
+        responses:
+          default:
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: '''*'''
+            statusCode: '200'
+        type: AWS_PROXY
+        uri: 'arn:aws:apigateway:{{.Region}}:lambda:path/{{.Paths.ListInstances}}'
+    options:
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: Successful operation
+          headers:
+            Access-Control-Allow-Headers:
+              description: Used in response to a preflight request to indicate which
+                HTTP headers can be used when making the request.
+              type: string
+            Access-Control-Allow-Methods:
+              description: Method or methods allowed when accessing the resource
+              type: string
+            Access-Control-Allow-Origin:
+              description: URI that may access the resource
+              type: string
+          schema:
+            $ref: '#/definitions/Empty'
+      x-amazon-apigateway-integration:
+        passthroughBehavior: NEVER
+        responses:
+          default:
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key'''
+              method.response.header.Access-Control-Allow-Methods: '''POST,GET,OPTIONS'''
+              method.response.header.Access-Control-Allow-Origin: '''*'''
+            statusCode: '200'
+        type: mock
+    post:
+      consumes:
+      - application/json
+      operationId: CreateInstance
+      parameters:
+      - in: body
+        name: NewInstance
+        required: true
+        schema:
+          $ref: '#/definitions/NewInstance'
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: Successful operation
+          headers:
+            Access-Control-Allow-Origin:
+              description: URI that may access the resource
+              type: string
+          schema:
+            $ref: '#/definitions/NewInstanceResponse'
+        '400':
+          description: Bad request
+          headers:
+            Access-Control-Allow-Origin:
+              description: URI that may access the resource
+              type: string
+          schema:
+            $ref: '#/definitions/NewInstanceResponse'
+        '500':
+          description: Internal error
+          headers:
+            Access-Control-Allow-Origin:
+              description: URI that may access the resource
+              type: string
+          schema:
+            $ref: '#/definitions/NewInstanceResponse'
+      summary: Create a Minecraft server instance
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        passthroughBehavior: NEVER
+        responses:
+          default:
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: '''*'''
+            statusCode: '200'
+        type: AWS_PROXY
+        uri: 'arn:aws:apigateway:{{.Region}}:lambda:path/{{.Paths.CreateInstance}}'
+  /instances/{instanceId}:
+    delete:
+      operationId: StopInstance
+      parameters:
+      - description: The id of the instance to stop
+        in: path
+        name: instanceId
+        required: true
+        type: string
+      - description: Terminate the instance instead of stopping it
+        in: header
+        name: Terminate-Instance
+        required: false
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: Successful operation
+          headers:
+            Access-Control-Allow-Origin:
+              description: URI that may access the resource
+              type: string
+          schema:
+            $ref: '#/definitions/Empty'
+        '400':
+          description: Bad request
+          headers:
+            Access-Control-Allow-Origin:
+              description: URI that may access the resource
+              type: string
+          schema:
+            $ref: '#/definitions/Empty'
+        '500':
+          description: Internal error
+          headers:
+            Access-Control-Allow-Origin:
+              description: URI that may access the resource
+              type: string
+          schema:
+            $ref: '#/definitions/Empty'
+      summary: Shut down an instance cleanly
+      x-amazon-apigateway-integration:
+        httpMethod: GET
+        passthroughBehavior: NEVER
+        requestParameters:
+          integration.request.path.petId: method.request.path.petId
+        responses:
+          default:
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: '''*'''
+            statusCode: '200'
+        type: AWS_PROXY
+        uri: 'arn:aws:apigateway:{{.Region}}:lambda:path/{{.Paths.ShutdownInstance}}'
+    options:
+      consumes:
+      - application/json
+      parameters:
+      - description: The id of the instance to stop
+        in: path
+        name: instanceId
+        required: true
+        type: string
+      - description: Terminate the instance instead of stopping it
+        in: header
+        name: Terminate-Instance
+        required: false
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: Successful operation
+          headers:
+            Access-Control-Allow-Headers:
+              description: Used in response to a preflight request to indicate which
+                HTTP headers can be used when making the request.
+              type: string
+            Access-Control-Allow-Methods:
+              description: Method or methods allowed when accessing the resource
+              type: string
+            Access-Control-Allow-Origin:
+              description: URI that may access the resource
+              type: string
+          schema:
+            $ref: '#/definitions/Empty'
+      x-amazon-apigateway-integration:
+        passthroughBehavior: NEVER
+        responses:
+          default:
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key'''
+              method.response.header.Access-Control-Allow-Methods: '''GET,OPTIONS'''
+              method.response.header.Access-Control-Allow-Origin: '''*'''
+            statusCode: '200'
+        type: mock
