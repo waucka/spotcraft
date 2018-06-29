@@ -40,6 +40,9 @@ sudo mkdir /minecraft
 sudo chown ubuntu:ubuntu /minecraft
 sudo mkdir /ebs
 ln -s /ebs/world /minecraft/world
+for configfile in ops.json whitelist.json banned-players.json banned-ips.json server.properties; do
+    ln -s /ebs/spotcraft/$configfile /minecraft/$configfile
+done
 
 cd /minecraft
 
@@ -74,6 +77,3 @@ EOF
         exit 1
         ;;
 esac
-
-mv /tmp/server.properties.$server_type server.properties
-rm /tmp/server.properties.*

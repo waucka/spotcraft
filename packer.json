@@ -37,16 +37,6 @@
         },
         {
             "type": "file",
-            "source": "config/server.properties.ftb",
-            "destination": "/tmp/server.properties.ftb"
-        },
-        {
-            "type": "file",
-            "source": "config/server.properties.vanilla",
-            "destination": "/tmp/server.properties.vanilla"
-        },
-        {
-            "type": "file",
             "source": "minemanagerd",
             "destination": "/tmp/minemanagerd"
         },

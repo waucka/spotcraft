@@ -41,8 +41,6 @@ type MinecraftParams struct {
 	EBSVolume string `json:"ebs_volume"`
 	LogGroup *string `json:"log_group"`
 	LogStream *string `json:"log_stream"`
-	ServerProperties *string `json:"server_properties"`
-	OpList string `json:"op_list"`
 }
 
 func getMinecraftParams() (*MinecraftParams, error)  {
