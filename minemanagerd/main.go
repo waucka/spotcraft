@@ -8,6 +8,7 @@ import (
 	"sync"
 	"bufio"
 	"errors"
+	"strings"
 	"sync/atomic"
 	"os/exec"
 	"syscall"
@@ -19,8 +20,10 @@ import (
 	"github.com/sirupsen/logrus"
 
 	aws "github.com/aws/aws-sdk-go/aws"
+	awserr "github.com/aws/aws-sdk-go/aws/awserr"
 	session "github.com/aws/aws-sdk-go/aws/session"
 	ec2 "github.com/aws/aws-sdk-go/service/ec2"
+	s3 "github.com/aws/aws-sdk-go/service/s3"
 	"github.com/kdar/logrus-cloudwatchlogs"
 )
 
@@ -29,16 +32,30 @@ const (
 	InstanceActionURL = "http://169.254.169.254/latest/meta-data/spot/instance-action"
 	InstanceMetadataURLPattern = "http://169.254.169.254/latest/meta-data/%s"
 	StartScriptPath = "/minecraft/ServerStart.sh"
+	MinecraftDir = "/minecraft"
+	PersistentConfigDir = "/ebs/spotcraft"
+	OpsFile = "/ops.json"
+	PropsFile = "/server.properties"
+	WhitelistFile = "/whitelist.json"
+	BannedPlayersFile = "/banned-players.json"
+	BannedIPsFile = "/banned-ips.json"
 )
 
 var (
+	ec2Client *ec2.EC2
+	s3Client *s3.S3
 	logger *logrus.Logger
 	ErrSpotTermination = errors.New("Spot instance terminating")
+	ErrCantFindSelf = errors.New("Failed to find self in EC2.  Wrong/missing IAM instance profile?")
+	ErrNoSuchServerFile = errors.New("No such server file")
+	DefaultFiles = []string{ OpsFile, PropsFile, WhitelistFile, BannedPlayersFile, BannedIPsFile }
 )
 
 type MinecraftParams struct {
 	ElasticIP string `json:"elastic_ip"`
 	EBSVolume string `json:"ebs_volume"`
+	ConfigBucket string `json:"config_bucket"`
+	TagName string `json:"tag_name"`
 	LogGroup *string `json:"log_group"`
 	LogStream *string `json:"log_stream"`
 	MaxRam *string `json:"max_ram"`
@@ -70,6 +87,57 @@ func getMinecraftParams() (*MinecraftParams, error)  {
 	}
 
 	return &params, nil
+}
+
+func (self *MinecraftParams) GetServerFile(path string) ([]byte, error) {
+	instanceId, err := getInstanceMetadata("instance-id")
+	if err != nil {
+		return nil, err
+	}
+
+	ec2Resp, err := ec2Client.DescribeInstances(&ec2.DescribeInstancesInput{
+		InstanceIds: []*string{ &instanceId },
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(ec2Resp.Reservations) == 0 {
+		return nil, ErrCantFindSelf
+	}
+	resv := ec2Resp.Reservations[0]
+	if len(resv.Instances) == 0 {
+		return nil, ErrCantFindSelf
+	}
+
+	serverName := ""
+	inst := resv.Instances[0]
+	for _, tag := range inst.Tags {
+		if tag.Key != nil && *tag.Key == self.TagName {
+			if tag.Value == nil {
+				return nil, fmt.Errorf("Invalid value for %s tag", self.TagName)
+			}
+			serverName = *tag.Value
+			break
+		}
+	}
+
+	s3Resp, err := s3Client.GetObject(&s3.GetObjectInput{
+		Bucket: &self.ConfigBucket,
+		Key: aws.String(fmt.Sprintf("servers/%s%s", serverName, path)),
+	})
+	if err != nil {
+		// WTF is this, Amazon?
+		if aerr, ok := err.(awserr.Error); ok {
+			if aerr.Code() == s3.ErrCodeNoSuchKey {
+				return nil, ErrNoSuchServerFile
+			}
+		}
+		return nil, err
+	}
+	defer s3Resp.Body.Close()
+
+	return ioutil.ReadAll(s3Resp.Body)
 }
 
 func getInstanceMetadata(name string) (string, error)  {
@@ -132,7 +200,7 @@ func getTerminationTime() (*time.Time, error)  {
 	return &t, nil
 }
 
-func attachEIP(ec2Client *ec2.EC2, params *MinecraftParams) error {
+func attachEIP(params *MinecraftParams) error {
 	instanceId, err := getInstanceMetadata("instance-id")
 	if err != nil {
 		return err
@@ -146,7 +214,7 @@ func attachEIP(ec2Client *ec2.EC2, params *MinecraftParams) error {
 	return err
 }
 
-func attachEBS(ec2Client *ec2.EC2, params *MinecraftParams) error {
+func attachEBS(params *MinecraftParams) error {
 	cmd := exec.Command("find-nvme-device", params.EBSVolume)
 	err := cmd.Run()
 	if err == nil {
@@ -166,7 +234,7 @@ func attachEBS(ec2Client *ec2.EC2, params *MinecraftParams) error {
 	return err
 }
 
-func detachEBS(ec2Client *ec2.EC2, params *MinecraftParams) error {
+func detachEBS(params *MinecraftParams) error {
 	cmd := exec.Command("find-nvme-device", params.EBSVolume)
 	err := cmd.Run()
 	if err == nil {
@@ -247,10 +315,81 @@ func (self *Minecraft) Stop(quiesce bool) {
 	}
 }
 
+func (self *Minecraft) copyConfigOverrides() error {
+	copier := func(remoteDir, localDir string, overwrite bool) func(filepath string) error {
+		return func(filepath string) error {
+			localpath := localDir + filepath
+			if _, err := os.Stat(localpath); os.IsNotExist(err) || overwrite {
+				content, err := self.params.GetServerFile(remoteDir + filepath)
+				if err != nil {
+					return err
+				}
+				var f *os.File
+				if overwrite {
+					f, err = os.OpenFile(
+						localpath,
+						os.O_WRONLY | os.O_CREATE | os.O_TRUNC,
+						0644,
+					)
+				} else {
+					f, err = os.Create(localpath)
+				}
+				if err != nil {
+					return err
+				}
+				defer f.Close()
+				_, err = f.Write(content)
+				if err != nil {
+					return err
+				}
+			}
+			
+			return nil
+		}
+	}
+	// Defaults should only be copied if they don't exist.
+	// These are files like ops.json and server.properties.
+	copyDefault := copier("defaults", PersistentConfigDir, false)
+	// Overrides may be changed in S3 and should always overwrite
+	// whatever may be present locally.
+	// These are typically mod-specific config files.
+	copyOverride := copier("overrides", MinecraftDir, true)
+
+	for _, filename := range DefaultFiles {
+		err := copyDefault(filename)
+		if err != nil {
+			return err
+		}
+	}
+
+	// overrides.lst is a simple text file with one path (relative to /minecraft)
+	// per line.  There must be a file in the S3 bucket with the same path
+	// relative to BUCKET/servers/$serverName/overrides.
+	overridesData, err := self.params.GetServerFile("/overrides.lst")
+	if err != nil {
+		if err == ErrNoSuchServerFile {
+			return nil
+		}
+		return err
+	}
+
+	for _, override := range strings.Split(string(overridesData), "\n") {
+		err := copyOverride(override)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (self *Minecraft) Run() error {
+	err := self.copyConfigOverrides()
+	if err != nil {
+		return err
+	}
 	cmd := exec.Command(StartScriptPath)
 
-	var err error
 	self.stdin, err = cmd.StdinPipe()
 	if err != nil {
 		return err
@@ -289,7 +428,7 @@ func (self *Minecraft) Run() error {
 	}
 }
 
-func cleanupDiskMounts(ec2Client *ec2.EC2, params *MinecraftParams) error {
+func cleanupDiskMounts(params *MinecraftParams) error {
 	err := unmountEBS(params)
 	if err != nil {
 		return fmt.Errorf("Failed to unmount EBS volume: %v", err)
@@ -298,7 +437,7 @@ func cleanupDiskMounts(ec2Client *ec2.EC2, params *MinecraftParams) error {
 	// Wait for things to settle
 	time.Sleep(10 * time.Second)
 
-	err = detachEBS(ec2Client, params)
+	err = detachEBS(params)
 	if err != nil {
 		return fmt.Errorf("Failed to detach EBS volume: %v", err)
 	}
@@ -319,7 +458,8 @@ func main() {
 	if err != nil {
 		logrus.Fatalf("Failed to create AWS session: %v", err)
 	}
-	ec2Client := ec2.New(sess)
+	ec2Client = ec2.New(sess)
+	s3Client = s3.New(sess)
 
 	instanceId, err := getInstanceMetadata("instance-id")
 	if err != nil {
@@ -352,12 +492,12 @@ func main() {
 		logger.Info("Logger initialized!")
 	}
 
-	err = attachEIP(ec2Client, params)
+	err = attachEIP(params)
 	if err != nil {
 		logger.Fatalf("Failed to attach EIP: %v", err)
 	}
 
-	err = attachEBS(ec2Client, params)
+	err = attachEBS(params)
 	if err != nil {
 		logger.Fatalf("Failed to attach EBS volume: %v", err)
 	}
@@ -418,7 +558,7 @@ func main() {
 		err = mc.Run()
 		if err == ErrSpotTermination {
 			success = true
-			cleanupErr := cleanupDiskMounts(ec2Client, params)
+			cleanupErr := cleanupDiskMounts(params)
 			if cleanupErr != nil {
 				logger.Error(cleanupErr.Error())
 			} else {
@@ -436,7 +576,7 @@ func main() {
 	}
 
 	if needsCleanup {
-		cleanupErr := cleanupDiskMounts(ec2Client, params)
+		cleanupErr := cleanupDiskMounts(params)
 		if cleanupErr != nil {
 			logger.Error(cleanupErr.Error())
 		}
