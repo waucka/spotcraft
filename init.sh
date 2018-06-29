@@ -5,7 +5,7 @@ set -e
 sudo apt update
 sudo apt full-upgrade -y
 
-sudo apt install -y openjdk-${java_version}-jre-headless nvme-cli
+sudo apt install -y openjdk-${java_version}-jre-headless nvme-cli jq curl
 
 sudo mv /tmp/minemanagerd /usr/bin/minemanagerd
 sudo chown root:root /usr/bin/minemanagerd
@@ -58,6 +58,10 @@ case $server_type in
         rm /tmp/server
         cat <<EOF > settings-local.sh
 export MAX_RAM="${default_ram}M"
+max_ram_userdata=$(curl http://169.254.169.254/latest/user-data | jq '.max_ram')
+if [ "\$max_ram_userdata" != "null"; then
+   export MAX_RAM="\${max_ram_userdata}"
+fi
 EOF
         if [ -f FTBInstall.sh ]; then
             chmod +x FTBInstall.sh
@@ -69,7 +73,13 @@ EOF
         cat <<EOF > ServerStart.sh
 #!/bin/sh
 
-java -Xmx${default_ram}M -Xms${default_ram}M -jar server.jar nogui
+mc_max_ram="${default_ram}"
+max_ram_userdata=$(curl http://169.254.169.254/latest/user-data | jq '.max_ram')
+if [ "\$max_ram_userdata" != "null"; then
+   mc_max_ram="\${max_ram_userdata}"
+fi
+
+java -Xmx\${mc_max_ram}M -Xms\${mc_max_ram}M -jar server.jar nogui
 EOF
         ;;
     *)
