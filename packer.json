@@ -67,6 +67,11 @@
         },
         {
             "type": "file",
+            "source": "scripts/remove_access.sh",
+            "destination": "/tmp/remove_access.sh"
+        },
+        {
+            "type": "file",
             "source": "find-nvme-device/find-nvme-device",
             "destination": "/tmp/find-nvme-device"
         },

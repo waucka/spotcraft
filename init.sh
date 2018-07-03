@@ -87,3 +87,6 @@ EOF
         exit 1
         ;;
 esac
+
+# Revoke ubuntu user's access to all things sudo except /sbin/poweroff
+sudo sh /tmp/remove_access.sh
