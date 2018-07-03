@@ -1,0 +1,525 @@
+AWSTemplateFormatVersion: 2010-09-09
+Metadata:
+  'AWS::CloudFormation::Designer':
+    1c02b9bb-bc0e-4e5b-89d2-64cde84280e8:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 180
+        'y': 30
+      z: 0
+      embeds: []
+      dependson:
+        - 90ff0237-4a05-4042-9bdd-c5ba1a9f8889
+    594857a8-6a03-47b0-a06a-cde211087bbb:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 340
+        'y': 30
+      z: 0
+      embeds: []
+      dependson:
+        - a68cffa2-5c85-4b9b-951b-5c076076cfeb
+    4274629c-363f-4225-954a-bfae5a463711:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 500
+        'y': 30
+      z: 0
+      embeds: []
+      dependson:
+        - 64bbde18-ef6c-47aa-a5c8-df77d50a4ec9
+    8b0dd8e3-f68c-4e60-a149-deb8a425c572:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 100
+        'y': 30
+      z: 0
+      embeds: []
+      dependson:
+        - 1c02b9bb-bc0e-4e5b-89d2-64cde84280e8
+    90ff0237-4a05-4042-9bdd-c5ba1a9f8889:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 260
+        'y': 30
+      z: 0
+      embeds: []
+      dependson:
+        - 594857a8-6a03-47b0-a06a-cde211087bbb
+    a68cffa2-5c85-4b9b-951b-5c076076cfeb:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 420
+        'y': 30
+      z: 0
+      embeds: []
+      dependson:
+        - 4274629c-363f-4225-954a-bfae5a463711
+    64bbde18-ef6c-47aa-a5c8-df77d50a4ec9:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 580
+        'y': 30
+      z: 0
+      embeds: []
+      dependson:
+        - 2926d824-8b8d-4987-a574-5ac39b7c1539
+    2926d824-8b8d-4987-a574-5ac39b7c1539:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 660
+        'y': 30
+      z: 0
+      embeds: []
+    e17c2b28-57e9-46a1-ace3-41dda39560ff:
+      source:
+        id: 8b0dd8e3-f68c-4e60-a149-deb8a425c572
+      target:
+        id: 1c02b9bb-bc0e-4e5b-89d2-64cde84280e8
+      z: 1
+    50cc5d5a-9416-4e33-a450-4f455ea74fb9:
+      source:
+        id: 1c02b9bb-bc0e-4e5b-89d2-64cde84280e8
+      target:
+        id: 90ff0237-4a05-4042-9bdd-c5ba1a9f8889
+      z: 2
+    ba2d3c8e-7841-4f12-87fc-3c11ffa8e544:
+      source:
+        id: 90ff0237-4a05-4042-9bdd-c5ba1a9f8889
+      target:
+        id: 594857a8-6a03-47b0-a06a-cde211087bbb
+      z: 3
+    20e96752-2eb7-4989-8cc0-a4df171eb6d5:
+      source:
+        id: 594857a8-6a03-47b0-a06a-cde211087bbb
+      target:
+        id: a68cffa2-5c85-4b9b-951b-5c076076cfeb
+      z: 4
+    ce3a798f-f254-449d-b621-b5fe4ddfcf96:
+      source:
+        id: a68cffa2-5c85-4b9b-951b-5c076076cfeb
+      target:
+        id: 4274629c-363f-4225-954a-bfae5a463711
+      z: 5
+    56257857-c8b3-46e5-a292-40b537952da2:
+      source:
+        id: 4274629c-363f-4225-954a-bfae5a463711
+      target:
+        id: 64bbde18-ef6c-47aa-a5c8-df77d50a4ec9
+      z: 6
+    1646a713-66b0-4f77-b5cd-59f30927e17c:
+      source:
+        id: 64bbde18-ef6c-47aa-a5c8-df77d50a4ec9
+      target:
+        id: 2926d824-8b8d-4987-a574-5ac39b7c1539
+      z: 7
+    68653b85-fabc-4458-a5cd-71325a1ba15b:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 98
+        'y': 161
+      z: 0
+      dependson:
+        - 8b0dd8e3-f68c-4e60-a149-deb8a425c572
+    f2736b07-77d5-4d97-990f-a1605f4d35f4:
+      source:
+        id: 68653b85-fabc-4458-a5cd-71325a1ba15b
+      target:
+        id: 8b0dd8e3-f68c-4e60-a149-deb8a425c572
+      z: 8
+Parameters:
+  ArtifactBucketParameter:
+    Type: String
+  Ec2ServerIdTagParameter:
+    Type: String
+  VpcCidrBlockParameter:
+    Type: String
+    Default: '10.0.0.0/16'
+  VPCInternalDomainParameter:
+    Type: String
+    Default: 'ec2.internal'
+  MinecraftAZParameter:
+    Type: String
+  ServerBucketParameter:
+    Type: String
+  LogGroupNameParameter:
+    Type: String
+  UserPoolNameParameter:
+    Type: String
+Resources:
+  IgwMinecraft:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties:
+      Tags:
+        - Key: 'spotcraft'
+          Value: 'true'
+  VpcMinecraft:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: !Ref VpcCidrBlockParameter
+      EnableDnsSupport: True
+      EnableDnsHostnames: False
+      InstanceTenancy: 'default'
+      Tags:
+        - Key: 'spotcraft'
+          Value: 'true'
+  IgwAttachmentMinecraft:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      InternetGatewayId: !Ref IgwMinecraft
+      VpcId: !Ref VpcMinecraft
+  DHCPOptionsMinecraft:
+    Type: 'AWS::EC2::DHCPOptions'
+    Properties:
+      DomainName: !Ref VPCInternalDomainParameter
+      DomainNameServers:
+        - AmazonProvidedDNS
+      Tags:
+        - Key: 'spotcraft'
+          Value: 'true'
+  DHCPAssociationMinecraft:
+    Type: 'AWS::EC2::VPCDHCPOptionsAssociation'
+    Properties:
+      DhcpOptionsId: !Ref DHCPOptionsMinecraft
+      VpcId: !Ref VpcMinecraft
+  SubnetMinecraft:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone: !Ref MinecraftAZParameter
+      VpcId: !Ref VpcMinecraft
+      CidrBlock: !Ref VpcCidrBlockParameter
+      MapPublicIpOnLaunch: False
+      Tags:
+        - Key: 'spotcraft'
+          Value: 'true'
+  SecurityGroupMinecraft:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupName: 'minecraft'
+      GroupDescription: 'Allow connections to Minecraft servers'
+      VpcId: !Ref VpcMinecraft
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+  AuthorizerSpotcraft:
+    Type: 'AWS::ApiGateway::Authorizer'
+    Properties:
+      Name: spotcraft
+      Type: COGNITO_USER_POOLS
+      ProviderARNs:
+        - !Ref UserPool
+      IdentitySource: 'Auth-Token'
+      RestApiId: !Ref ApiSpotcraft
+  ApiSpotcraft:
+    Type: 'AWS::ApiGateway::RestApi'
+    Properties:
+      ApiKeySourceType: AUTHORIZER
+      BodyS3Location:
+        Fn::Sub:
+          - '{BucketName}/api.json'
+          - { BucketName: !Ref ArtifactBucketParameter }
+      Description: 'SpotCraft API'
+  CloudWatchLogGroup:
+    Type: 'AWS::Logs::LogGroup'
+    Properties:
+      LogGroupName: !Ref LogGroupNameParameter
+      RetentionInDays: 7
+  IamProfileSpotInstance:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      InstanceProfileName: spotcraft
+      Roles:
+        - !Ref IamRoleSpotInstance 
+  IamRoleSpotInstance:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: 'spotcraft'
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement: 
+          - 
+            Effect: "Allow"
+            Principal: 
+              Service: 
+                - "ec2.amazonaws.com"
+            Action: 
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - !Ref IamPolicySpotcraftEc2
+  IamPolicySpotcraftEc2:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      ManagedPolicyName: 'spotcraft-instance-ec2'
+      Description: 'Allows spotcraft EC2 instances to manage themselves'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Action:
+              - 'ec2:DescribeInstances'
+            Resource:
+              - '${ec2:SourceInstanceARN}'
+          - Effect: 'Allow'
+            Action:
+              - 'ec2:AttachVolume'
+              - 'ec2:DetachVolume'
+            Resource:
+              - Fn::Sub: 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:volume/*'
+              - '${ec2:SourceInstanceARN}'
+            Condition:
+              StringEquals:
+                - 'ec2:ResourceTag/spotcraft': 'true'
+          - Effect: 'Allow'
+            Action:
+              - 'ec2:AssociateAddress'
+            # Sorry, but * is the best I can do.  Stupid AWS...
+            Resource:
+              - '*'
+          - Effect: 'Allow'
+            Action:
+              - 's3:GetObject'
+            Resource:
+              - Fn::Sub:
+                - 'arn:aws:s3:::${BucketName}/*'
+                - { BucketName: !Ref ServerBucketParameter }
+          - Effect: 'Allow'
+            Action:
+              - 'logs:CreateLogStream'
+            Resource:
+              - Fn::Sub:
+                  - 'arn:aws:logs:${AWSRegion}:${AWSAccount}:log-group:${GroupName}'
+                  - GroupName: !Ref CloudWatchLogGroup
+                    AWSRegion: '${AWS:Region}'
+                    AWSAccount: '${AWS:Account}'
+  IamPolicySpotcraftLambda:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      ManagedPolicyName: 'spotcraft-instance-ec2'
+      Description: 'Allows spotcraft EC2 instances to manage themselves'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Action:
+              - 'ec2:DescribeInstances'
+              - 'ec2:StopInstances'
+              - 'ec2:TerminateInstances'
+            Resource:
+              - '*'
+            Condition:
+              StringEquals:
+                - 'ec2:ResourceTag/spotcraft': 'true'
+          - Effect: 'Allow'
+            Action:
+              - 'ec2:RunInstances'
+            Resource:
+              - '*'
+            # This should keep us from running stuff outside the Minecraft VPC
+            # or with AMIs other than the ones that the CLI builds.
+            Condition:
+              StringEquals:
+                - 'ec2:ResourceTag/spotcraft': 'true'
+          - Effect: 'Allow'
+            Action:
+              - 'ec2:DeleteVolume'
+            Resource:
+              - 'arn:aws:ec2:*:*:volume/*'
+            Condition:
+              StringEquals:
+                - 'ec2:ResourceTag/spotcraft': 'true'
+          - Effect: 'Allow'
+            Action:
+              - 'ec2:ReleaseAddress'
+            # Sorry, but * is the best I can do.  Stupid AWS...
+            Resource:
+              - '*'
+          - Effect: 'Allow'
+            Action:
+              - 's3:GetObject'
+            Resource:
+              - Fn::Sub:
+                - 'arn:aws:s3:::${BucketName}/*'
+                - { BucketName: !Ref ServerBucketParameter }
+          - Effect: 'Allow'
+            Action:
+              - 's3:ListBucket'
+            Resource:
+              - Fn::Sub:
+                - 'arn:aws:s3:::${BucketName}'
+                - { BucketName: !Ref ServerBucketParameter }
+  LambdaCreateInstance:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Code:
+        S3Bucket: !Ref ArtifactBucketParameter
+        S3Key: 'functions/create_instance.zip'
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref ServerBucketParameter
+          EC2_TAG: !Ref Ec2ServerIdTagParameter
+          VPC_ID: !Ref VpcMinecraft
+          IAM_INSTANCE_PROFILE_ARN: !Ref IamProfileSpotInstance
+          LOG_GROUP: !Ref CloudWatchLogGroup
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 1c02b9bb-bc0e-4e5b-89d2-64cde84280e8
+    DependsOn:
+      - LambdaGetInstances
+  LambdaCreateServer:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Code:
+        S3Bucket: !Ref ArtifactBucketParameter
+        S3Key: 'functions/get_instances.zip'
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref ServerBucketParameter
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 594857a8-6a03-47b0-a06a-cde211087bbb
+    DependsOn:
+      - LambdaGetServers
+  LambdaDeleteServer:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Code:
+        S3Bucket: !Ref ArtifactBucketParameter
+        S3Key: 'functions/delete_server.zip'
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref ServerBucketParameter
+          EC2_TAG: !Ref Ec2ServerIdTagParameter
+          VPC_ID: !Ref VpcMinecraft
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 4274629c-363f-4225-954a-bfae5a463711
+    DependsOn:
+      - LambdaModifyServer
+  LambdaGetInstances:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Code:
+        S3Bucket: !Ref ArtifactBucketParameter
+        S3Key: 'functions/get_instances.zip'
+      Environment:
+        Variables:
+          EC2_TAG: !Ref Ec2ServerIdTagParameter
+          VPC_ID: !Ref VpcMinecraft
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 90ff0237-4a05-4042-9bdd-c5ba1a9f8889
+    DependsOn:
+      - LambdaCreateServer
+  LambdaGetServers:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Code:
+        S3Bucket: !Ref ArtifactBucketParameter
+        S3Key: 'functions/get_servers.zip'
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref ServerBucketParameter
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: a68cffa2-5c85-4b9b-951b-5c076076cfeb
+    DependsOn:
+      - LambdaDeleteServer
+  LambdaModifyServer:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Code:
+        S3Bucket: !Ref ArtifactBucketParameter
+        S3Key: 'functions/modify_server.zip'
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref ServerBucketParameter
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 64bbde18-ef6c-47aa-a5c8-df77d50a4ec9
+    DependsOn:
+      - LambdaShutdownInstance
+  LambdaShutdownInstance:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Code:
+        S3Bucket: !Ref ArtifactBucketParameter
+        S3Key: 'functions/shutdown_instance.zip'
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref ServerBucketParameter
+          EC2_TAG: !Ref Ec2ServerIdTagParameter
+          VPC_ID: !Ref VpcMinecraft
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 2926d824-8b8d-4987-a574-5ac39b7c1539
+  LambdaSignupValidation:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Code:
+        S3Bucket: !Ref ArtifactBucketParameter
+        S3Key: 'functions/signup_validation.zip'
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 8b0dd8e3-f68c-4e60-a149-deb8a425c572
+    DependsOn:
+      - LambdaCreateInstance
+  UserPool:
+    Type: 'AWS::Cognito::UserPool'
+    Properties:
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: False
+      AutoVerifiedAttributes:
+        - email
+      DeviceConfiguration:
+        ChallengeRequiredOnNewDevice: False
+        DeviceOnlyRememberedOnUserPrompt: True
+      LambdaConfig:
+        PreSignUp: !Ref LambdaSignupValidation
+      MfaConfiguration: OFF
+      Policies:
+        PasswordPolicy:
+          MinimumLength": 8
+          RequireUppercase: True
+          RequireLowercase: True
+          RequireNumbers: True
+          RequireSymbols: True
+      UserPoolName: !Ref UserPoolNameParameter
+      Schema:
+        - AttributeDataType: String
+          DeveloperOnlyAttribute: False
+          Mutable: True
+          Name: email
+          Required: True
+        - AttributeDataType: String
+          DeveloperOnlyAttribute: False
+          Mutable: True
+          Name: custom:minecraft_userid
+          Required: False
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 68653b85-fabc-4458-a5cd-71325a1ba15b
+    DependsOn:
+      - LambdaSignupValidation

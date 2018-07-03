@@ -109,7 +109,7 @@ paths:
         responses:
           default:
             responseParameters:
-              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key'''
+              method.response.header.Access-Control-Allow-Headers: '''Content-Type,Auth-Token'''
               method.response.header.Access-Control-Allow-Methods: '''POST,GET,OPTIONS'''
               method.response.header.Access-Control-Allow-Origin: '''*'''
             statusCode: '200'
@@ -262,7 +262,7 @@ paths:
         responses:
           default:
             responseParameters:
-              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key'''
+              method.response.header.Access-Control-Allow-Headers: '''Content-Type,Auth-Token'''
               method.response.header.Access-Control-Allow-Methods: '''GET,OPTIONS'''
               method.response.header.Access-Control-Allow-Origin: '''*'''
             statusCode: '200'
@@ -316,7 +316,7 @@ paths:
         responses:
           default:
             responseParameters:
-              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key'''
+              method.response.header.Access-Control-Allow-Headers: '''Content-Type,Auth-Token'''
               method.response.header.Access-Control-Allow-Methods: '''POST,GET,OPTIONS'''
               method.response.header.Access-Control-Allow-Origin: '''*'''
             statusCode: '200'
@@ -509,7 +509,7 @@ paths:
         responses:
           default:
             responseParameters:
-              method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key'''
+              method.response.header.Access-Control-Allow-Headers: '''Content-Type,Auth-Token'''
               method.response.header.Access-Control-Allow-Methods: '''GET,OPTIONS'''
               method.response.header.Access-Control-Allow-Origin: '''*'''
             statusCode: '200'
