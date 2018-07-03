@@ -4,7 +4,7 @@ FUNCTION_ZIP := $(subst handler_,,$(FUNCTION_PY:.py=.zip))
 all: $(FUNCTION_ZIP)
 
 %.zip: handler_%.py common.py
-	echo zip $@ $^
+	zip $@ $^
 
 clean:
 	rm -f $(FUNCTION_ZIP)
