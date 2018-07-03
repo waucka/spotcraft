@@ -1,7 +1,10 @@
-SUBDIRS := minemanagerd mounter unmounter find-nvme-device
+SUBDIRS := minemanagerd mounter unmounter find-nvme-device cli lambda
 PACKER := packer
 
-all: $(SUBDIRS)
+all: $(SUBDIRS) static-assets
+
+static-assets: lambda api.yaml spotcraft.template
+	$(MAKE) -C $@
 
 $(SUBDIRS):
 	$(MAKE) -C $@
@@ -18,4 +21,4 @@ ami: $(SUBDIRS) packer.json vars.json
 clean:
 	bash ./clean.sh $(SUBDIRS)
 
-.PHONY: all clean ami $(SUBDIRS)
+.PHONY: all clean ami static-assets $(SUBDIRS)
