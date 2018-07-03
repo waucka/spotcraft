@@ -6,3 +6,6 @@ unmounter/unmounter
 find-nvme-device/find-nvme-device
 minemanagerd/minemanagerd
 minemanagerd/vendor
+cli/vendor
+cli/client
+cli/models
