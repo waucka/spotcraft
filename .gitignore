@@ -9,3 +9,9 @@ minemanagerd/vendor
 cli/vendor
 cli/client
 cli/models
+cli/statik
+cli/spotcraft
+lambda/*.zip
+static-assets/functions
+static-assets/*.template
+static-assets/*.json

@@ -1,0 +1,118 @@
+hash: b666decf8bd2c3e7d99b0df15fb88acd83fa0e4622a2ffc11c5e706979d63b79
+updated: 2018-07-03T19:56:09.571683398-05:00
+imports:
+- name: github.com/asaskevich/govalidator
+  version: 7d2e70ef918f16bd6455529af38304d6d025c952
+- name: github.com/aws/aws-sdk-go
+  version: e4f914808a9655ef3220bb0082002239cc7f3561
+  subpackages:
+  - aws
+  - aws/awserr
+  - aws/awsutil
+  - aws/client
+  - aws/client/metadata
+  - aws/corehandlers
+  - aws/credentials
+  - aws/credentials/ec2rolecreds
+  - aws/credentials/endpointcreds
+  - aws/credentials/stscreds
+  - aws/csm
+  - aws/defaults
+  - aws/ec2metadata
+  - aws/endpoints
+  - aws/request
+  - aws/session
+  - aws/signer/v4
+  - internal/sdkio
+  - internal/sdkrand
+  - internal/shareddefaults
+  - private/protocol
+  - private/protocol/ec2query
+  - private/protocol/eventstream
+  - private/protocol/eventstream/eventstreamapi
+  - private/protocol/query
+  - private/protocol/query/queryutil
+  - private/protocol/rest
+  - private/protocol/restxml
+  - private/protocol/xml/xmlutil
+  - service/cloudformation
+  - service/ec2
+  - service/route53domains
+  - service/s3
+  - service/s3/s3iface
+  - service/s3/s3manager
+  - service/sts
+- name: github.com/go-ini/ini
+  version: cec2bdc49009247305a260b082a18e802d0fe292
+- name: github.com/go-openapi/analysis
+  version: ecce8cb68f3d9cdf720bd203b6de599fe03e5673
+- name: github.com/go-openapi/errors
+  version: b2b2befaf267d082d779bcef52d682a47c779517
+- name: github.com/go-openapi/jsonpointer
+  version: 3a0015ad55fa9873f41605d3e8f28cd279c32ab2
+- name: github.com/go-openapi/jsonreference
+  version: 3fb327e6747da3043567ee86abd02bb6376b6be2
+- name: github.com/go-openapi/loads
+  version: 2a2b323bab96e6b1fdee110e57d959322446e9c9
+- name: github.com/go-openapi/runtime
+  version: 9a3091f566c0811ef4d54b535179bc0fc484a11f
+  subpackages:
+  - client
+  - logger
+  - middleware
+  - middleware/denco
+  - middleware/header
+  - middleware/untyped
+  - security
+- name: github.com/go-openapi/spec
+  version: bcff419492eeeb01f76e77d2ebc714dc97b607f5
+- name: github.com/go-openapi/strfmt
+  version: 481808443b00a14745fada967cb5eeff0f9b1df2
+- name: github.com/go-openapi/swag
+  version: 811b1089cde9dad18d4d0c2d09fbdbf28dbd27a5
+- name: github.com/go-openapi/validate
+  version: b0a3ed684d0fdd3e1eda00433382188ce8aa7169
+- name: github.com/jmespath/go-jmespath
+  version: c2b33e8439af944379acbdd9c3a5fe0bc44bd8a5
+- name: github.com/mailru/easyjson
+  version: 3fdea8d05856a0c8df22ed4bc71b3219245e4485
+  subpackages:
+  - buffer
+  - jlexer
+  - jwriter
+- name: github.com/mitchellh/go-homedir
+  version: 3864e76763d94a6df2f9960b16a20a33da9f9a66
+- name: github.com/mitchellh/mapstructure
+  version: bb74f1db0675b241733089d5a1faa5dd8b0ef57b
+- name: github.com/PuerkitoBio/purell
+  version: 975f53781597ed779763b7b65566e74c4004d8de
+- name: github.com/PuerkitoBio/urlesc
+  version: de5bf2ad457846296e2031421a34e2568e304e35
+- name: github.com/rakyll/statik
+  version: fd36b3595eb2ec8da4b8153b107f7ea08504899d
+  subpackages:
+  - fs
+- name: github.com/urfave/cli
+  version: cfb38830724cc34fedffe9a2a29fb54fa9169cd1
+- name: golang.org/x/net
+  version: 4cb1c02c05b0e749b0365f61ae859a8e0cfceed9
+  subpackages:
+  - context
+  - context/ctxhttp
+  - idna
+- name: golang.org/x/text
+  version: c0fe8dde8a10c9b32154bd9bdf080b8b3d635127
+  subpackages:
+  - secure/bidirule
+  - transform
+  - unicode/bidi
+  - unicode/norm
+  - width
+- name: gopkg.in/mgo.v2
+  version: 3f83fa5005286a7fe593b055f0d7771a7dce4655
+  subpackages:
+  - bson
+  - internal/json
+- name: gopkg.in/yaml.v2
+  version: 5420a8b6744d3b0345ab293f6fcba19c978f1183
+testImports: []

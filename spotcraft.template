@@ -148,22 +148,22 @@ Metadata:
 Parameters:
   ArtifactBucketParameter:
     Type: String
-  Ec2ServerIdTagParameter:
-    Type: String
   VpcCidrBlockParameter:
     Type: String
     Default: '10.0.0.0/16'
-  VPCInternalDomainParameter:
+  VpcInternalDomainParameter:
     Type: String
     Default: 'ec2.internal'
   MinecraftAZParameter:
     Type: String
   ServerBucketParameter:
     Type: String
-  LogGroupNameParameter:
+  DomainNameParameter:
     Type: String
-  UserPoolNameParameter:
-    Type: String
+Outputs:
+  HostedZoneNameServers:
+    Description: 'Authoritative nameservers for SpotCraft-managed hosted zone'
+    Value: !Join [',', !GetAtt HostedZoneMinecraft.NameServers]
 Resources:
   IgwMinecraft:
     Type: 'AWS::EC2::InternetGateway'
@@ -189,7 +189,7 @@ Resources:
   DHCPOptionsMinecraft:
     Type: 'AWS::EC2::DHCPOptions'
     Properties:
-      DomainName: !Ref VPCInternalDomainParameter
+      DomainName: !Ref VpcInternalDomainParameter
       DomainNameServers:
         - AmazonProvidedDNS
       Tags:
@@ -224,6 +224,15 @@ Resources:
       SecurityGroupEgress:
         - IpProtocol: -1
           CidrIp: 0.0.0.0/0
+  HostedZoneMinecraft:
+    Type: 'AWS::Route53::HostedZone'
+    Properties:
+      HostedZoneConfig:
+        Comment: 'Used by SpotCraft'
+      HostedZoneTags:
+        - Key: spotcraft
+          Value: true
+      Name: !Ref DomainNameParameter
   AuthorizerSpotcraft:
     Type: 'AWS::ApiGateway::Authorizer'
     Properties:
@@ -245,7 +254,7 @@ Resources:
   CloudWatchLogGroup:
     Type: 'AWS::Logs::LogGroup'
     Properties:
-      LogGroupName: !Ref LogGroupNameParameter
+      LogGroupName: 'spotcraft'
       RetentionInDays: 7
   IamProfileSpotInstance:
     Type: 'AWS::IAM::InstanceProfile'
@@ -342,6 +351,7 @@ Resources:
             Condition:
               StringEquals:
                 - 'ec2:ResourceTag/spotcraft': 'true'
+                - 'aws:RequestTag/spotcraft': 'true'
           - Effect: 'Allow'
             Action:
               - 'ec2:DeleteVolume'
@@ -370,6 +380,22 @@ Resources:
               - Fn::Sub:
                 - 'arn:aws:s3:::${BucketName}'
                 - { BucketName: !Ref ServerBucketParameter }
+          - Effect: 'Allow'
+            Action:
+              - 'route53:GetHostedZone'
+            Resource:
+              - '*'
+          - Effect: 'Allow'
+            Action:
+              - 'route53:GetHostedZone'
+              - 'route53:ListHostedZones'
+            Resource:
+              - '*'
+          - Effect: 'Allow'
+            Action:
+              - 'route53:ChangeResourceRecordSets'
+            Resource:
+              - !Ref HostedZoneMinecraft
   LambdaCreateInstance:
     Type: 'AWS::Lambda::Function'
     Properties:
@@ -379,7 +405,7 @@ Resources:
       Environment:
         Variables:
           BUCKET_NAME: !Ref ServerBucketParameter
-          EC2_TAG: !Ref Ec2ServerIdTagParameter
+          EC2_TAG: 'SpotCraftServer'
           VPC_ID: !Ref VpcMinecraft
           IAM_INSTANCE_PROFILE_ARN: !Ref IamProfileSpotInstance
           LOG_GROUP: !Ref CloudWatchLogGroup
@@ -411,7 +437,7 @@ Resources:
       Environment:
         Variables:
           BUCKET_NAME: !Ref ServerBucketParameter
-          EC2_TAG: !Ref Ec2ServerIdTagParameter
+          EC2_TAG: 'SpotCraftServer'
           VPC_ID: !Ref VpcMinecraft
     Metadata:
       'AWS::CloudFormation::Designer':
@@ -426,7 +452,7 @@ Resources:
         S3Key: 'functions/get_instances.zip'
       Environment:
         Variables:
-          EC2_TAG: !Ref Ec2ServerIdTagParameter
+          EC2_TAG: 'SpotCraftServer'
           VPC_ID: !Ref VpcMinecraft
     Metadata:
       'AWS::CloudFormation::Designer':
@@ -470,7 +496,7 @@ Resources:
       Environment:
         Variables:
           BUCKET_NAME: !Ref ServerBucketParameter
-          EC2_TAG: !Ref Ec2ServerIdTagParameter
+          EC2_TAG: 'SpotCraftServer'
           VPC_ID: !Ref VpcMinecraft
     Metadata:
       'AWS::CloudFormation::Designer':
@@ -506,7 +532,7 @@ Resources:
           RequireLowercase: True
           RequireNumbers: True
           RequireSymbols: True
-      UserPoolName: !Ref UserPoolNameParameter
+      UserPoolName: 'spotcraft'
       Schema:
         - AttributeDataType: String
           DeveloperOnlyAttribute: False

@@ -1,12 +1,27 @@
-SUBDIRS := minemanagerd mounter unmounter find-nvme-device cli lambda
+SUBDIRS := minemanagerd mounter unmounter find-nvme-device cli lambda static-assets
 PACKER := packer
 
-all: $(SUBDIRS) static-assets
+all: $(SUBDIRS)
 
 static-assets: lambda api.yaml spotcraft.template
 	$(MAKE) -C $@
 
-$(SUBDIRS):
+minemanagerd:
+	$(MAKE) -C $@
+
+mounter:
+	$(MAKE) -C $@
+
+unmounter:
+	$(MAKE) -C $@
+
+find-nvme-device:
+	$(MAKE) -C $@
+
+lambda:
+	$(MAKE) -C $@
+
+cli: static-assets
 	$(MAKE) -C $@
 
 # If you want to use the defaults, you don't need to create
